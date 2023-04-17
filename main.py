@@ -1,6 +1,7 @@
 import face_recognition
 import cv2
 import numpy as np
+import time
 
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
 # other example, but it includes some basic performance tweaks to make things run a lot faster:
@@ -22,14 +23,20 @@ obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
 biden_image = face_recognition.load_image_file("faces/biden.jpeg")
 biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
 
+# Load a second sample picture and learn how to recognize it.
+padrone_image = face_recognition.load_image_file("faces/padrone.jpg")
+padrone_face_encoding = face_recognition.face_encodings(padrone_image)[0]
+
 # Create arrays of known face encodings and their names
 known_face_encodings = [
     obama_face_encoding,
-    biden_face_encoding
+    biden_face_encoding,
+    padrone_face_encoding
 ]
 known_face_names = [
     "Barack Obama",
-    "Joe Biden"
+    "Joe Biden",
+    "Il padrone"
 ]
 
 # Initialize some variables
@@ -37,6 +44,8 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
+
+start_time = time.time()
 
 while True:
     # Grab a single frame of video
@@ -73,9 +82,17 @@ while True:
 
             face_names.append(name)
 
-    process_this_frame = not process_this_frame
+    #process_this_frame = not process_this_frame
+
+    # Print the name of the faces recognised
+    if len(face_names) == 0:
+        print(f'No known faces\t Time: {time.time() - start_time}')
+    else:
+        for name in face_names:
+            print(f'Found face {name}\t Time: {time.time() - start_time}')
 
     # Display the results
+    '''
     for (top, right, bottom, left), name in zip(face_locations, face_names):
         # Scale back up face locations since the frame we detected in was scaled to 1/4 size
         top *= 4
@@ -90,9 +107,9 @@ while True:
         cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-
+    '''
     # Display the resulting image
-    cv2.imshow('Video', frame)
+    # cv2.imshow('Video', frame)
 
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
