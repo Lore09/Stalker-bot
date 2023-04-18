@@ -82,17 +82,19 @@ while True:
 
             face_names.append(name)
 
-    #process_this_frame = not process_this_frame
+    process_this_frame = not process_this_frame
 
     # Print the name of the faces recognised
+    '''
     if len(face_names) == 0:
         print(f'No known faces\t Time: {time.time() - start_time}')
     else:
         for name in face_names:
             print(f'Found face {name}\t Time: {time.time() - start_time}')
+    '''
 
     # Display the results
-    '''
+
     for (top, right, bottom, left), name in zip(face_locations, face_names):
         # Scale back up face locations since the frame we detected in was scaled to 1/4 size
         top *= 4
@@ -107,9 +109,9 @@ while True:
         cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-    '''
+
     # Display the resulting image
-    # cv2.imshow('Video', frame)
+    cv2.imshow('Video', frame)
 
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
