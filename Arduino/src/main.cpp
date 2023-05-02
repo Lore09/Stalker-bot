@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#define DEBUG 0
+
 // Motor A connections
 int enA = 6;
 int in1 = 7;
@@ -9,9 +11,23 @@ int enB = 5;
 int in3 = 3;
 int in4 = 4;
 
-int baseSpeed = 200;
-int leftmotorSpeed = 0;
-int rightmotorSpeed = 0;
+
+// Motor control variables
+int baseSpeed = 200;  // Base PWM value to sent to motors (Range 0-255), adjust to match your motors
+bool new_data = false; // Flag to indicate new data from serial communication
+
+int turnTarget = 0; // Target value for turning (Range -255 to 255)
+int currentTurn = 0; // Current turning value (Range -255 to 255)
+
+int advanceTarget = 0; // Target value for advancing (Range -255 to 255)
+int currentAdvance = 0; // Current advancing value (Range -255 to 255)
+
+int leftMotorSpeed = 0;  // PWM value for left motor (Range 0 to 255)
+int rightMotorSpeed = 0; // PWM value for right motor (Range 0 to 255)
+
+// Servo control variables
+int servoTarget = 0; // Target value for servo (Range 0 to 180)
+int servoAngle = 0; // Current angle of servo (Range 0 to 180)
 
 void stop(){
   digitalWrite(in1, LOW);
@@ -21,16 +37,24 @@ void stop(){
 
   analogWrite(enA, 0);
   analogWrite(enB, 0);
+
+  currentTurn = 0;
+  currentAdvance = 0;
+  advanceTarget = 0;
+  turnTarget = 0;
 }
 
-void turnMotors(int leftMotorSpeed, int rightMotorSpeed) {
-    
+void moveMotors(int advanceSpeed, int turnSpeed){
+
+    leftMotorSpeed = advanceSpeed + turnSpeed;
+    rightMotorSpeed = advanceSpeed - turnSpeed;
+
     if(leftMotorSpeed > 0) {
         analogWrite(enA, leftMotorSpeed + baseSpeed);   
         digitalWrite(in1, HIGH);
         digitalWrite(in2, LOW);
     } else {
-        analogWrite(enA, -leftMotorSpeed + baseSpeed);
+        analogWrite(enA, -(leftMotorSpeed + baseSpeed));
         digitalWrite(in1, LOW);
         digitalWrite(in2, HIGH);
     }
@@ -40,25 +64,36 @@ void turnMotors(int leftMotorSpeed, int rightMotorSpeed) {
         digitalWrite(in3, HIGH);
         digitalWrite(in4, LOW);
     } else {
-        analogWrite(enB, -rightMotorSpeed + baseSpeed);
+        analogWrite(enB, -(rightMotorSpeed + baseSpeed));
         digitalWrite(in3, LOW);
         digitalWrite(in4, HIGH);
     }
 
 }
 
-void moveMotors(int advanceSpeed, int turnSpeed){
+bool checkSerialData(){
+  // Read data from Serial Communication
+  if (Serial.available() > 0) {
+    
+    String data = Serial.readStringUntil('\n');
 
-    leftmotorSpeed = advanceSpeed + turnSpeed;
-    rightmotorSpeed = advanceSpeed - turnSpeed;
+    // split value,value,value by comma
+    int firstComma = data.indexOf(',');
+    int secondComma = data.indexOf(',', firstComma + 1);
 
-    turnMotors(leftmotorSpeed, rightmotorSpeed);
+    // get advance and turn values
+    advanceTarget = data.substring(0, firstComma).toInt();
+    turnTarget = data.substring(firstComma + 1, secondComma).toInt();
+    servoTarget = data.substring(secondComma + 1).toInt();
 
-    delay(10);
+    return true;
+  }
+  else return false;
 }
 
 
 void setup() {
+
 	// Set all the motor control pins to outputs
 	pinMode(enA, OUTPUT);
 	pinMode(enB, OUTPUT);
@@ -68,46 +103,56 @@ void setup() {
 	pinMode(in4, OUTPUT);
 	
 	// Turn off motors - Initial state
-	digitalWrite(in1, LOW);
-	digitalWrite(in2, LOW);
-	digitalWrite(in3, LOW);
-	digitalWrite(in4, LOW);
+	stop();
 
+  // Begin serial communication at a baudrate of 9600:
   Serial.begin(9600);
+
+  delay(1000);
 }
 
 void loop() {
+    
+	if(checkSerialData()){
+    // Reset current values
+    currentTurn = 0;
+    currentAdvance = 0;
 
-	
-  for(int i = 0; i < 50; i++) {
-    moveMotors(i, 0);
-    Serial.println("Avanzando");
-    delay(20);
+    new_data = true;
+  };
+
+  // move towards target values
+  if(new_data && (currentTurn != turnTarget || currentAdvance != advanceTarget)){
+    // turn towards target
+    if(currentTurn != turnTarget){
+      if(currentTurn < turnTarget) currentTurn++;
+      else currentTurn--;
+    }
+
+    // advance towards target
+    if(currentAdvance != advanceTarget){
+      if(currentAdvance < advanceTarget) currentAdvance++;
+      else currentAdvance--;
+    }
+
+    moveMotors(currentAdvance, currentTurn);
   }
-  delay(2000);
-
-  /*
-  for(int i = 0; i > -50; i--) {
-    moveMotors(i, 0);
-    Serial.println("Indietreggiando");
-    delay(20);
+  else if(new_data){
+    stop();
+    new_data = false;
+    Serial.println("STOP");
   }
 
-  for(int i = 0; i < 10; i++) {
-    moveMotors(0, i);
-    Serial.println("Sinistra");
-    delay(100);
+  // Debug data
+  if(DEBUG && new_data){
+    Serial.print("Advance: ");
+    Serial.print(currentAdvance);
+    Serial.print(" Turn: ");
+    Serial.print(currentTurn);
+    Serial.print(" Servo: ");
+    Serial.println(servoTarget);
   }
 
-  for(int i = 0; i < 10; i++) {
-    moveMotors(0, -i);
-    Serial.println("Destra");
-    delay(100);
-  }
-  */
-
-  stop();
-
-  delay(1000);
+  delay(10);
 
 }
