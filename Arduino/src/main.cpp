@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define DEBUG 0
+#define DEBUG 1
 
 // Motor A connections
 int enA = 6;
@@ -8,12 +8,12 @@ int in1 = 7;
 int in2 = 8;
 // Motor B connections
 int enB = 5;
-int in3 = 3;
-int in4 = 4;
+int in3 = 4;
+int in4 = 3;
 
 
 // Motor control variables
-int baseSpeed = 200;  // Base PWM value to sent to motors (Range 0-255), adjust to match your motors
+int baseSpeed = 100;  // Base PWM value to sent to motors (Range 0-255), adjust to match your motors
 bool new_data = false; // Flag to indicate new data from serial communication
 
 int turnTarget = 0; // Target value for turning (Range -255 to 255)
@@ -49,11 +49,16 @@ void moveMotors(int advanceSpeed, int turnSpeed){
     leftMotorSpeed = advanceSpeed + turnSpeed;
     rightMotorSpeed = advanceSpeed - turnSpeed;
 
+    if(leftMotorSpeed == 0 && rightMotorSpeed == 0) {
+      stop();
+      return;
+    }
+
     if(leftMotorSpeed > 0) {
         analogWrite(enA, leftMotorSpeed + baseSpeed);   
         digitalWrite(in1, HIGH);
         digitalWrite(in2, LOW);
-    } else {
+    } else{
         analogWrite(enA, -(leftMotorSpeed + baseSpeed));
         digitalWrite(in1, LOW);
         digitalWrite(in2, HIGH);
@@ -70,6 +75,23 @@ void moveMotors(int advanceSpeed, int turnSpeed){
     }
 
 }
+
+void turnLeft(){
+  moveMotors(0, 50);
+}
+
+void turnRight(){
+  moveMotors(0, -50);
+}
+
+void advance(){
+  moveMotors(50, 0);
+}
+
+void back(){
+  moveMotors(-50, 0);
+}
+
 
 bool checkSerialData(){
   // Read data from Serial Communication
@@ -143,8 +165,14 @@ void loop() {
     Serial.println("STOP");
   }
 
+  //---------------------------------
+  // TEST
+  advance();
+  //---------------------------------
+
+
   // Debug data
-  if(DEBUG && new_data){
+  if(DEBUG){
     Serial.print("Advance: ");
     Serial.print(currentAdvance);
     Serial.print(" Turn: ");
