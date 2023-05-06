@@ -25,6 +25,12 @@ cam.set(4, 480)  # set video height
 minW = 0.1 * cam.get(3)
 minH = 0.1 * cam.get(4)
 
+#ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+#ser.reset_input_buffer()
+
+x_delta = 50
+y_delta = 45
+
 while True:
 
     ret, img = cam.read()
@@ -45,6 +51,26 @@ while True:
 
         id, confidence = recognizer.predict(gray[y:y + h, x:x + w])
 
+        if id == 1:
+            #id = names[id]
+            distance = round(158 - 0.43 * ((w + h) / 2))
+            mid_x = x + w/2
+            mid_y = y + h/2
+
+            turn = 0
+            acc = 0
+
+            if mid_x < (640/2-x_delta) or mid_x > (640/2+x_delta):
+                turn = int(mid_x - (640/2 + x_delta))
+
+            if mid_y < (480/2-y_delta) or mid_y > (480/2+y_delta):
+                acc = int(mid_y - (480/2 + y_delta))
+
+            string = str(acc) + "," + str(turn) + ",100\n"
+            #ser.write(string.encode('utf-8'))
+            print(string)
+
+
         # Check if confidence is less them 100 ==> "0" is perfect match
         if (confidence < 100):
             id = names[id]
@@ -57,7 +83,8 @@ while True:
 
         cv2.putText(img, str(id), (x + 5, y - 5), font, 1, (255, 255, 255), 2)
         #cv2.putText(img, str(confidence), (x + 5, y + h - 5), font, 1, (255, 255, 0), 1)
-        cv2.putText(img, f'Distance: {distance}', (x - 10, y + h - 5), font, 1, (255, 0, 255), 2)
+        #cv2.putText(img, f'Distance: {distance}', (x - 10, y + h - 5), font, 1, (255, 0, 255), 2)
+
 
     cv2.imshow('camera', img)
 
