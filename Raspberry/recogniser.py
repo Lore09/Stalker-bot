@@ -61,10 +61,10 @@ while True:
             acc = 0
 
             if mid_x < (640/2-x_delta) or mid_x > (640/2+x_delta):
-                turn = int(mid_x - (640/2 + x_delta))
+                turn = int((mid_x - (640/2 + x_delta))/2)
 
             if mid_y < (480/2-y_delta) or mid_y > (480/2+y_delta):
-                acc = int(mid_y - (480/2 + y_delta))
+                acc = int((mid_y - (480/2 + y_delta))/2)
 
             string = str(acc) + "," + str(turn) + ",100\n"
             #ser.write(string.encode('utf-8'))
