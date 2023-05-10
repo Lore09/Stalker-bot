@@ -3,6 +3,7 @@ import numpy as np
 import face_recognition
 import serial
 from typing import List
+import time
 
 def arduino_map(value, in_min, in_max, out_min, out_max):
     return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
@@ -83,6 +84,7 @@ if __name__ == '__main__':
     face_encodings = []
     face_names = []
     process_this_frame = True
+    prev_time=0
 
     while(True):
         # Grab a single frame of video
@@ -120,7 +122,7 @@ if __name__ == '__main__':
 
                 face_names.append(name)
 
-        process_this_frame = not process_this_frame
+        #process_this_frame = not process_this_frame
 
         #distances = dist.get_distances(bounding_boxes=face_locations)
 
@@ -144,11 +146,21 @@ if __name__ == '__main__':
             if mid_y < (480 / 2 - y_delta) or mid_y > (480 / 2 + y_delta):
                 acc = int(arduino_map((mid_y - (480 / 2 + y_delta)), -480 / 2 + y_delta, 480 / 2 - y_delta, -75, 75))
 
-            string = str(acc) + "," + str(turn) + ",100\n"
+            string = str(acc) + "," + str(turn) + ",350\n"
+
+            cur_time = time.time()
+            if prev_time == 0:
+                prev_time= cur_time
             ser.write(string.encode('utf-8'))
-            print(face_names[0], face_locations[0])
+            #print(face_names[0], face_locations[0])
+            print("Time: "+ str(cur_time-prev_time))
             print(string)
+            prev_time = cur_time
         
+        else:
+            string = str(0) + "," + str(0) + ",350\n"
+            ser.write(string.encode('utf-8'))
+
         #Display the result
         '''
         for idx, ((top, right, bottom, left), name) in enumerate(zip(face_locations, face_names)):
