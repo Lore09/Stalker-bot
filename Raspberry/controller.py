@@ -40,22 +40,22 @@ while not done:
     joystick.init()
     #print(joystick.get_name())
     x = -int(joystick.get_axis(0)*75)
-    y = int(joystick.get_axis(1)*100)
+    y = -int(joystick.get_axis(1)*100)
 
     if joystick.get_button(0):
         front_led = not front_led
         if front_led:
-            ser.write(b"F,1")
+            ser.write(b"F,1\n")
         else:
-            ser.write(b"F,0")
+            ser.write(b"F,0\n")
         time.sleep(0.25)
     
     if joystick.get_button(1):
         back_led = not back_led
         if back_led:
-            ser.write(b"B,1")
+            ser.write(b"B,1\n")
         else:
-            ser.write(b"B,0")
+            ser.write(b"B,0\n")
         time.sleep(0.25)
 
     string = str(y) + "," + str(x) + ",100\n"
