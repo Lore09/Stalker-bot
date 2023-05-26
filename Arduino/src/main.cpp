@@ -11,6 +11,10 @@ int enB = 5;
 int in3 = 4;
 int in4 = 3;
 
+// Lights
+int front_led = 12;
+int back_led = 11;
+
 
 // Motor control variables
 int base_pwm = 100;  // Base PWM value to sent to motors (Range 0-255), adjust to match your motors
@@ -72,26 +76,6 @@ void moveMotors(int advanceSpeed, int turnSpeed){
 
 }
 
-void turnLeft(){
-  moveMotors(0, 50);
-  delay(400);
-}
-
-void turnRight(){
-  moveMotors(0, -50);
-  delay(400);
-}
-
-void advance(){
-  moveMotors(50, 0);
-  delay(800);
-}
-
-void back(){
-  moveMotors(-50, 0);
-  delay(800);
-}
-
 
 bool checkSerialData(){
   // Read data from Serial Communication
@@ -102,28 +86,20 @@ bool checkSerialData(){
     // Direct commands
     switch (data[0])
     {
-    case 'A':
-      advance();
-      turn_speed=0;
-      advance_speed=0;
+    case 'F':
+      if(data.substring(2).toInt() == 1){
+        digitalWrite(front_led, HIGH);
+      } else {
+        digitalWrite(front_led, LOW);
+      }
       break;
     
     case 'B':
-      back();
-      turn_speed=0;
-      advance_speed=0;
-      break;
-    
-    case 'L':
-      turnLeft();
-      turn_speed=0;
-      advance_speed=0;
-      break;
-    
-    case 'R':
-      turnRight();
-      turn_speed=0;
-      advance_speed=0;
+      if(data.substring(2).toInt() == 1){
+        digitalWrite(back_led, HIGH);
+      } else {
+        digitalWrite(back_led, LOW);
+      }
       break;
     
     case 'S':
@@ -160,9 +136,15 @@ void setup() {
 	pinMode(in2, OUTPUT);
 	pinMode(in3, OUTPUT);
 	pinMode(in4, OUTPUT);
+  pinMode(front_led, OUTPUT);
+	pinMode(back_led, OUTPUT);
 	
 	// Turn off motors - Initial state
 	stop();
+
+  // Turn off lights
+  digitalWrite(front_led, LOW);
+  digitalWrite(back_led, LOW);
 
   // Begin serial communication at a baudrate of 9600:
   Serial.begin(9600);
