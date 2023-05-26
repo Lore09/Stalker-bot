@@ -7,6 +7,8 @@ pygame.joystick.init()
 
 done = False
 
+front_led = False
+back_led = False
 
 started = False
 
@@ -39,6 +41,23 @@ while not done:
     #print(joystick.get_name())
     x = -int(joystick.get_axis(0)*50)
     y = int(joystick.get_axis(1)*100)
+
+    if joystick.get_button(0):
+        front_led = not front_led
+        if front_led:
+            ser.write("F,1".encode('utf-8'))
+        else:
+            ser.write("F,0".encode('utf-8'))
+        time.sleep(0.5)
+    
+    if joystick.get_button(1):
+        back_led = not back_led
+        if back_led:
+            ser.write("B,1".encode('utf-8'))
+        else:
+            ser.write("B,0".encode('utf-8'))
+        time.sleep(0.5)
+
     string = str(y) + "," + str(x) + ",100\n"
     ser.write(string.encode('utf-8'))
     print("acc: " + str(y) + " - turn: " + str(x))
