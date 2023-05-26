@@ -45,7 +45,7 @@ while not done:
     if joystick.get_button(0):
         front_led = not front_led
         if front_led:
-            ser.write("F,1")
+            ser.write(b"F,1")
         else:
             ser.write(b"F,0")
         time.sleep(0.25)
